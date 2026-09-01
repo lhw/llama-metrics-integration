@@ -23,11 +23,10 @@ from tests.conftest import (
 
 def test_parse_prometheus_skips_comments_and_bad_lines() -> None:
     text = '# HELP x y\n# TYPE x counter\nx 1.5\nbad line\ny{a="1"} 2\nz NaN\n'
-    metrics, names = parse_prometheus(text)
+    metrics = parse_prometheus(text)
     assert metrics["x"] == 1.5
     assert metrics['y{a="1"}'] == 2.0
     assert math.isnan(metrics["z"])
-    assert names == {"x", "y", "z"}
 
 
 def test_split_metric_key() -> None:
@@ -46,7 +45,6 @@ async def test_llama_coordinator_update(hass, config_entry, mock_endpoints) -> N
     assert data["slots"][0]["id"] == 0
     assert data["props"]["model_alias"] == "TestModel-8B"
     assert data["health"] == "ok"
-    assert "llamacpp:custom_thing_total" in data["metric_names"]
 
 
 async def test_llama_coordinator_unavailable(hass, config_entry) -> None:

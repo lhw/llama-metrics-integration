@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     PERCENTAGE,
@@ -30,11 +29,6 @@ PATH_SLOTS = "/slots"
 PATH_PROPS = "/props"
 PATH_HEALTH = "/health"
 
-# Device identifying attributes
-ATTR_HOST = "host"
-ATTR_SLOT = "slot"
-ATTR_GPU = "gpu"
-
 
 @dataclass(frozen=True)
 class MetricDef:
@@ -44,7 +38,6 @@ class MetricDef:
     unit: str | None = None
     state_class: SensorStateClass | None = None
     device_class: SensorDeviceClass | None = None
-    icon: str | None = None
 
 
 # Known llama.cpp Prometheus metrics, keyed by full metric name (with the
@@ -231,13 +224,6 @@ GPU_METRICS: dict[str, MetricDef] = {
     "gpu_name": MetricDef(name="GPU name"),
     "pci_bus_id": MetricDef(name="PCI bus ID"),
 }
-
-# Binary sensors.
-BINARY_SLEEPING = BinarySensorDeviceClass.RUNNING
-BINARY_SLOT_ACTIVE = BinarySensorDeviceClass.RUNNING
-
-# State classes used by informational (non-numeric) sensors.
-STATE_CLASS_NONE: SensorStateClass | None = None
 
 
 def humanize_metric(name: str) -> str:

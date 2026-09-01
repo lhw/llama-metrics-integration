@@ -36,14 +36,6 @@ SLOT_SENSOR_DEFS: list[tuple[str, str, str | None]] = [
     ("id_task", "Task ID", None),
 ]
 
-# Known llama.cpp slot `timings` sub-fields: attr -> (name, unit).
-SLOT_TIMINGS: dict[str, tuple[str, str | None]] = {
-    "predicted_per_second": ("Predicted tokens/s", "tokens/s"),
-    "prompt_per_second": ("Prompt tokens/s", "tokens/s"),
-    "predicted_ms": ("Predicted time", "ms"),
-    "prompt_ms": ("Prompt time", "ms"),
-}
-
 
 def _main_device_info(
     host: str, props: dict[str, Any], base_url: str
@@ -71,19 +63,8 @@ def _gpu_device_info(gpu_host: str, data: dict[str, Any]) -> dict[str, Any]:
     return {
         "identifiers": {(DOMAIN, f"{gpu_host}/gpu")},
         "name": name or f"GPU {gpu_host}",
-        "manufacturer": _manufacturer_from_name(name),
         "model": data.get("pci_bus_id"),
     }
-
-
-def _manufacturer_from_name(name: str | None) -> str | None:
-    if not name:
-        return None
-    low = name.lower()
-    for vendor in ("nvidia", "amd", "intel", "apple"):
-        if vendor in low:
-            return vendor.title()
-    return None
 
 
 class LlamaMetricSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
@@ -112,7 +93,6 @@ class LlamaMetricSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
         self._attr_native_unit_of_measurement = definition.unit if definition else None
         self._attr_state_class = definition.state_class if definition else None
         self._attr_device_class = definition.device_class if definition else None
-        self._attr_icon = definition.icon if definition and definition.icon else None
         self._key = key
         self._attr_unique_id = f"{key}"
         self._attr_device_info = device_info
@@ -134,14 +114,12 @@ class LlamaInfoSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
         device_info: dict[str, Any],
         key: str,
         name: str,
-        category: EntityCategory | None = EntityCategory.DIAGNOSTIC,
     ) -> None:
         super().__init__(coordinator)
         self._key = key
         self._attr_name = name
         self._attr_unique_id = f"{key}"
         self._attr_device_info = device_info
-        self._attr_entity_category = category
 
     @property
     def native_value(self) -> Any:
@@ -175,9 +153,6 @@ class SlotSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
     def native_value(self) -> Any:
         for slot in self.coordinator.data.get("slots", []):
             if slot.get("id") == self._slot_id:
-                timings = slot.get("timings")
-                if self._attr in SLOT_TIMINGS and isinstance(timings, dict):
-                    return timings.get(self._attr)
                 return slot.get(self._attr)
         return None
 
@@ -200,7 +175,6 @@ class GpuMetricSensor(CoordinatorEntity[GpuCoordinator], SensorEntity):
         self._attr_native_unit_of_measurement = definition.unit
         self._attr_state_class = definition.state_class
         self._attr_device_class = definition.device_class
-        self._attr_icon = definition.icon
         self._key = key
         self._attr_unique_id = f"gpu:{key}"
         self._attr_device_info = device_info
@@ -244,13 +218,6 @@ async def async_setup_entry(
         for attr, name, unit in SLOT_SENSOR_DEFS:
             if attr in slot:
                 entities.append(SlotSensor(llama, slot_info, slot_id, attr, name, unit))
-        timings = slot.get("timings")
-        if isinstance(timings, dict):
-            for attr, (name, unit) in SLOT_TIMINGS.items():
-                if attr in timings:
-                    entities.append(
-                        SlotSensor(llama, slot_info, slot_id, attr, name, unit)
-                    )
 
     # 4. GPU — separate device when configured.
     if gpu is not None:

@@ -25,6 +25,7 @@ from .const import (
     MIN_SCAN_INTERVAL,
     PATH_METRICS,
 )
+from .coordinator import _host_from_url
 
 LOGGER = logging.getLogger(__package__)
 
@@ -39,10 +40,6 @@ def _normalize_url(value: str | None) -> str | None:
     if "://" not in value:
         value = "http://" + value
     return value
-
-
-def _title_from_url(url: str) -> str:
-    return url.split("://", 1)[-1].split("/", 1)[0]
 
 
 def _is_valid_url(url: str) -> bool:
@@ -115,7 +112,7 @@ class LlamaConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(data[CONF_LLAMA_URL])
                 self._abort_if_unique_id_configured(error="unique_already_configured")
                 return self.async_create_entry(
-                    title=_title_from_url(data[CONF_LLAMA_URL]), data=data
+                    title=_host_from_url(data[CONF_LLAMA_URL]), data=data
                 )
         return self.async_show_form(
             step_id="user", data_schema=_schema({}), errors=errors

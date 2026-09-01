@@ -38,14 +38,13 @@ _PROM_LINE = re.compile(
 )
 
 
-def parse_prometheus(text: str) -> tuple[dict[str, float], set[str]]:
-    """Parse prometheus text into ``{full_key: value}`` and the set of base names.
+def parse_prometheus(text: str) -> dict[str, float]:
+    """Parse prometheus text into ``{full_key: value}``.
 
     ``full_key`` is the metric name, or ``name{labels}`` when the sample carries
     labels, so each labelled series is kept as its own key.
     """
     metrics: dict[str, float] = {}
-    names: set[str] = set()
     for raw in text.splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
@@ -59,9 +58,8 @@ def parse_prometheus(text: str) -> tuple[dict[str, float], set[str]]:
         except ValueError:
             continue
         labels = match.group("labels")
-        names.add(name)
         metrics[name if labels is None else f"{name}{labels}"] = value
-    return metrics, names
+    return metrics
 
 
 def split_metric_key(key: str) -> tuple[str, dict[str, str]]:
@@ -133,7 +131,7 @@ class LlamaCPPCoordinator(_BaseCoordinator):
         # /metrics is required: without it there is nothing to show, so a
         # failure here marks the whole device unavailable.
         metrics_text = await self._async_get_text(base + PATH_METRICS)
-        metrics, metric_names = parse_prometheus(metrics_text)
+        metrics = parse_prometheus(metrics_text)
 
         slots_raw, props, health = await asyncio.gather(
             self._async_get_json_optional(base + PATH_SLOTS),
@@ -144,7 +142,6 @@ class LlamaCPPCoordinator(_BaseCoordinator):
 
         return {
             "metrics": metrics,
-            "metric_names": metric_names,
             "slots": slots,
             "props": props or {},
             "health": (health or {}).get("status"),
@@ -197,14 +194,3 @@ def _host_from_url(url: str) -> str:
     """Reduce a base URL to ``host:port`` for stable device identifiers."""
     url = url.split("://", 1)[-1]
     return url.split("/", 1)[0]
-
-
-__all__ = [
-    "GpuCoordinator",
-    "LlamaCPPCoordinator",
-    "create_coordinators",
-    "gpu_host_of",
-    "host_of",
-    "parse_prometheus",
-    "split_metric_key",
-]

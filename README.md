@@ -21,7 +21,9 @@ A reachable llama.cpp server exposing:
 | `/props`    | Model name, build info, sleeping state     |
 | `/health`   | Server health                              |
 
-Optionally, a GPU metrics exporter serving a JSON object at its base URL.
+Optionally, a GPU metrics exporter serving a JSON object at its base URL. A
+ready-to-run, headless podman container for the exporter lives in
+[`gpu-exporter/`](gpu-exporter/).
 
 ## Installation
 
