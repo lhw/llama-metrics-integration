@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "llama.cpp server",
+        "description": "Enter the URL of the llama.cpp server that exposes Prometheus metrics.",
+        "data": {
+          "llama_url": "Server URL",
+          "gpu_url": "GPU exporter URL (optional)",
+          "scan_interval": "Polling interval (seconds)"
+        },
+        "data_description": {
+          "llama_url": "Base URL of the llama.cpp server, e.g. http://192.168.1.197:8001",
+          "gpu_url": "Optional base URL of the GPU metrics exporter, e.g. http://192.168.1.197:9091. Leave empty to skip GPU metrics.",
+          "scan_interval": "How often to poll the endpoints, in seconds (minimum 5)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid": "Invalid URL",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "unique_already_configured": "This llama.cpp server is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "llama.cpp options",
+        "description": "Adjust the GPU exporter URL and polling interval.",
+        "data": {
+          "llama_url": "Server URL",
+          "gpu_url": "GPU exporter URL (optional)",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid": "Invalid URL",
+      "unknown": "Unexpected error"
+    }
+  }
+}

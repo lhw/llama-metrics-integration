@@ -1,0 +1,12 @@
+{
+  "domain": "llamacpp",
+  "name": "llama.cpp",
+  "codeowners": ["@lhw"],
+  "config_flow": true,
+  "documentation": "https://github.com/lhw/llama-metrics-integration",
+  "issue_tracker": "https://github.com/lhw/llama-metrics-integration/issues",
+  "iot_class": "polling",
+  "loggers": ["llamacpp"],
+  "requirements": [],
+  "version": "1.0.0"
+}

@@ -1,0 +1,24 @@
+[project]
+name = "llama-metrics-integration"
+version = "1.0.0"
+description = "Home Assistant integration exposing llama.cpp and GPU Prometheus metrics"
+requires-python = ">=3.13"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+src = ["custom_components", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "S", "ASYNC", "RUF"]
+ignore = ["S101", "B011"]
