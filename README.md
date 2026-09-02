@@ -7,7 +7,7 @@ A Home Assistant custom integration that turns a running [llama.cpp](https://git
 - **Labeled series** (e.g. `..._accepted_tokens_per_pos_total{position="0"}`) become one entity per label set.
 - **Slots as subdevices.** Each active slot becomes a subdevice with its own context/token sensors and activity binary sensors.
 - **Optional GPU device.** Point it at a GPU metrics exporter (JSON at the base URL) to get utilization, memory, temperature, power, clocks, and fan on a separate device.
-- **Live availability.** Entities go `unavailable` the moment a poll fails and recover automatically.
+- **Live availability.** Entities go `unavailable` the moment a poll fails and recover automatically. When the host is unreachable (e.g. a suspended box) polling backs off (15s → 5 min cap) instead of hammering it, and an INFO log marks the moment it's back online.
 - **No extra Python dependencies.** Uses only HA's built-in `aiohttp`.
 
 ## Requirements
@@ -59,7 +59,7 @@ A bare `host:port` is accepted and defaults to `http://`. The GPU URL and pollin
 - Request gauges: processing, deferred, busy slots per decode
 - KV exact-tail coverage: requested/exact tokens, complete/partial/none groups, degraded sequences
 
-**Informational** (from `/props`): model, model type, slot count, and a "model sleeping" binary sensor.
+**Informational** (from `/props`): model, model type, slot count, and a "model sleeping" binary sensor. An "online" connectivity binary sensor (diagnostic) flips off while the server is unreachable — handy for automations like *notify me when the box wakes*.
 
 **Slot subdevices** (one per active slot): context size, prompt tokens (total/processed/cached), task ID, plus "is processing" and "speculative" binary sensors.
 

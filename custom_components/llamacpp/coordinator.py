@@ -30,7 +30,9 @@ from .const import (
 
 LOGGER = logging.getLogger(__package__)
 
-CLIENT_TIMEOUT = aiohttp.ClientTimeout(total=10)
+# `sock_connect` is kept short so a suspended/offline host is detected quickly
+# instead of waiting out the full response timeout on every probe.
+CLIENT_TIMEOUT = aiohttp.ClientTimeout(total=10, sock_connect=3)
 
 # A single prometheus sample line: `name{labels} value [timestamp]`.
 _PROM_LINE = re.compile(
@@ -76,7 +78,10 @@ def split_metric_key(key: str) -> tuple[str, dict[str, str]]:
 
 
 class _BaseCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Shared aiohttp plumbing for the llama.cpp and GPU coordinators."""
+    """Shared aiohttp plumbing and offline backoff for both coordinators."""
+
+    # A suspended/offline host is probed at most once per this many seconds.
+    MAX_RETRY_AFTER = 300.0
 
     def __init__(
         self,
@@ -93,14 +98,31 @@ class _BaseCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
         self.session = async_get_clientsession(hass)
+        self._base_interval = float(scan_interval)
+        self._fail_streak = 0
+
+    def _next_retry_after(self) -> float:
+        """Growing (capped) delay for the next probe while the host is unreachable."""
+        self._fail_streak += 1
+        delay = self._base_interval * 2 ** (self._fail_streak - 1)
+        return min(self.MAX_RETRY_AFTER, delay)
+
+    def _note_success(self) -> None:
+        """Reset the backoff once the host is reachable again."""
+        self._fail_streak = 0
 
     async def _async_get_text(self, url: str) -> str:
         try:
             async with self.session.get(url, timeout=CLIENT_TIMEOUT) as resp:
                 resp.raise_for_status()
-                return await resp.text()
+                text = await resp.text()
         except (TimeoutError, aiohttp.ClientError) as err:
-            raise UpdateFailed(f"Error communicating with {url}: {err}") from err
+            raise UpdateFailed(
+                f"Error communicating with {url}: {err}",
+                retry_after=self._next_retry_after(),
+            ) from err
+        self._note_success()
+        return text
 
     async def _async_get_json_optional(self, url: str) -> Any:
         """Fetch JSON, returning ``None`` instead of failing on any error.
@@ -165,9 +187,14 @@ class GpuCoordinator(_BaseCoordinator):
                 resp.raise_for_status()
                 data = await resp.json()
         except (TimeoutError, aiohttp.ClientError) as err:
-            raise UpdateFailed(f"Error fetching GPU metrics: {err}") from err
+            raise UpdateFailed(
+                f"Error fetching GPU metrics: {err}",
+                retry_after=self._next_retry_after(),
+            ) from err
         if not isinstance(data, dict):
+            # Host is reachable but sent an unexpected payload; don't back off.
             raise UpdateFailed("Unexpected GPU metrics payload")
+        self._note_success()
         return data
 
 

@@ -37,6 +37,34 @@ class LlamaSleepingBinary(CoordinatorEntity[LlamaCPPCoordinator], BinarySensorEn
         return bool(self.coordinator.data.get("props", {}).get("is_sleeping", False))
 
 
+class LlamaHostOnlineBinary(CoordinatorEntity[LlamaCPPCoordinator], BinarySensorEntity):
+    """Whether the llama.cpp server is currently reachable.
+
+    Stays available while the coordinator is failing so it can report the host
+    as offline — the whole point of the entity.
+    """
+
+    _attr_has_entity_name = True
+    _attr_name = "Online"
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self, coordinator: LlamaCPPCoordinator, device_info: dict[str, Any]
+    ) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = "online"
+        self._attr_device_info = device_info
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.last_update_success
+
+
 class SlotBinary(CoordinatorEntity[LlamaCPPCoordinator], BinarySensorEntity):
     """A boolean field from a single llama.cpp slot (subdevice)."""
 
@@ -80,6 +108,7 @@ async def async_setup_entry(
     main_info = _main_device_info(host, props, llama.base_url)
 
     entities: list[BinarySensorEntity] = [
+        LlamaHostOnlineBinary(llama, main_info),
         LlamaSleepingBinary(llama, main_info),
     ]
 

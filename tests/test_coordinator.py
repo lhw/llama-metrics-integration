@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+import aiohttp
 from aioresponses import aioresponses
 from custom_components.llamacpp.const import (
     CONF_LLAMA_URL,
@@ -18,6 +19,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from tests.conftest import (
     GPU_URL,
     LLAMA_URL,
+    SAMPLE_HEALTH,
+    SAMPLE_METRICS,
+    SAMPLE_PROPS,
+    SAMPLE_SLOTS,
 )
 
 
@@ -83,3 +88,53 @@ async def test_no_gpu_when_unconfigured(hass) -> None:
     entry.add_to_hass(hass)
     coords = create_coordinators(hass, entry)
     assert coords["gpu"] is None
+
+
+async def test_llama_coordinator_backs_off_when_unreachable(hass, config_entry) -> None:
+    config_entry.add_to_hass(hass)
+    coord = create_coordinators(hass, config_entry)["llama"]
+    # Consecutive unreachable hosts widen the probe gap, capped at 5 minutes.
+    with aioresponses() as mocked:
+        mocked.get(
+            f"{LLAMA_URL}/metrics",
+            exception=aiohttp.ClientConnectionError(),
+            repeat=True,
+        )
+        retries = []
+        for _ in range(6):
+            await coord.async_refresh()
+            assert not coord.last_update_success
+            retries.append(coord.last_exception.retry_after)
+    assert retries == [15.0, 30.0, 60.0, 120.0, 240.0, 300.0]
+
+    # Recovery resets the streak...
+    with aioresponses() as mocked:
+        mocked.get(f"{LLAMA_URL}/metrics", body=SAMPLE_METRICS, repeat=True)
+        mocked.get(f"{LLAMA_URL}/slots", payload=SAMPLE_SLOTS, repeat=True)
+        mocked.get(f"{LLAMA_URL}/props", payload=SAMPLE_PROPS, repeat=True)
+        mocked.get(f"{LLAMA_URL}/health", payload=SAMPLE_HEALTH, repeat=True)
+        await coord.async_refresh()
+        assert coord.last_update_success
+    # ...so the next outage starts back at the base interval.
+    with aioresponses() as mocked:
+        mocked.get(
+            f"{LLAMA_URL}/metrics",
+            exception=aiohttp.ClientConnectionError(),
+            repeat=True,
+        )
+        await coord.async_refresh()
+        assert coord.last_exception.retry_after == 15.0
+
+
+async def test_gpu_coordinator_backs_off_when_unreachable(hass, config_entry) -> None:
+    config_entry.add_to_hass(hass)
+    coord = create_coordinators(hass, config_entry)["gpu"]
+    with aioresponses() as mocked:
+        mocked.get(
+            GPU_URL,
+            exception=aiohttp.ClientConnectionError(),
+            repeat=True,
+        )
+        await coord.async_refresh()
+        assert not coord.last_update_success
+        assert coord.last_exception.retry_after == 15.0
