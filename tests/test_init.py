@@ -9,7 +9,6 @@ from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from tests.conftest import (
     LLAMA_URL,
-    SAMPLE_HEALTH,
     SAMPLE_METRICS,
     SAMPLE_PROPS,
     SAMPLE_SLOTS,
@@ -67,7 +66,6 @@ async def test_no_gpu_device_when_unconfigured(hass) -> None:
         mocked.get("http://10.0.0.5:8001/metrics", body=SAMPLE_METRICS)
         mocked.get("http://10.0.0.5:8001/slots", payload=SAMPLE_SLOTS)
         mocked.get("http://10.0.0.5:8001/props", payload=SAMPLE_PROPS)
-        mocked.get("http://10.0.0.5:8001/health", payload=SAMPLE_HEALTH)
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
     registry = dr.async_get(hass)

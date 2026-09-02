@@ -1,6 +1,6 @@
 # llama.cpp for Home Assistant
 
-A Home Assistant custom integration that turns a running [llama.cpp](https://github.com/ggml-org/llama.cpp) server into first-class HA entities. It polls the server's Prometheus `/metrics` endpoint (plus `/slots`, `/props`, and `/health`) and exposes every metric the server reports, and — when configured — a separate GPU metrics exporter as its own device.
+A Home Assistant custom integration that turns a running [llama.cpp](https://github.com/ggml-org/llama.cpp) server into first-class HA entities. It polls the server's Prometheus `/metrics` endpoint (plus `/slots` and `/props`) and exposes every metric the server reports, and — when configured — a separate GPU metrics exporter as its own device.
 
 - **One device per llama.cpp address**, model name and build info pulled from `/props`.
 - **Every metric mapped.** All known llama.cpp metrics get the right unit, state class, and device class. Anything new the server starts emitting still gets a sensible fallback sensor, so nothing is silently dropped.
@@ -19,7 +19,6 @@ A reachable llama.cpp server exposing:
 | `/metrics`  | Prometheus metrics (required)              |
 | `/slots`    | Per-slot state (subdevices)                |
 | `/props`    | Model name, build info, sleeping state     |
-| `/health`   | Server health                              |
 
 Optionally, a GPU metrics exporter serving a JSON object at its base URL. A
 ready-to-run, headless podman container for the exporter lives in

@@ -19,7 +19,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from tests.conftest import (
     GPU_URL,
     LLAMA_URL,
-    SAMPLE_HEALTH,
     SAMPLE_METRICS,
     SAMPLE_PROPS,
     SAMPLE_SLOTS,
@@ -49,7 +48,6 @@ async def test_llama_coordinator_update(hass, config_entry, mock_endpoints) -> N
     assert data["metrics"]["llamacpp:prompt_cache_accounted_bytes"] == 3.789e9
     assert data["slots"][0]["id"] == 0
     assert data["props"]["model_alias"] == "TestModel-8B"
-    assert data["health"] == "ok"
 
 
 async def test_llama_coordinator_unavailable(hass, config_entry) -> None:
@@ -112,7 +110,6 @@ async def test_llama_coordinator_backs_off_when_unreachable(hass, config_entry) 
         mocked.get(f"{LLAMA_URL}/metrics", body=SAMPLE_METRICS, repeat=True)
         mocked.get(f"{LLAMA_URL}/slots", payload=SAMPLE_SLOTS, repeat=True)
         mocked.get(f"{LLAMA_URL}/props", payload=SAMPLE_PROPS, repeat=True)
-        mocked.get(f"{LLAMA_URL}/health", payload=SAMPLE_HEALTH, repeat=True)
         await coord.async_refresh()
         assert coord.last_update_success
     # ...so the next outage starts back at the base interval.

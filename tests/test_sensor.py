@@ -7,7 +7,6 @@ from tests.conftest import (
     GPU_URL,
     LLAMA_URL,
     SAMPLE_GPU,
-    SAMPLE_HEALTH,
     SAMPLE_METRICS,
     SAMPLE_PROPS,
     SAMPLE_SLOTS,
@@ -100,7 +99,6 @@ async def test_entities_unavailable_when_down(hass, config_entry) -> None:
         mocked.get(f"{LLAMA_URL}/metrics", status=500)
         mocked.get(f"{LLAMA_URL}/slots", payload=SAMPLE_SLOTS, repeat=True)
         mocked.get(f"{LLAMA_URL}/props", payload=SAMPLE_PROPS, repeat=True)
-        mocked.get(f"{LLAMA_URL}/health", payload=SAMPLE_HEALTH, repeat=True)
         mocked.get(GPU_URL, payload=SAMPLE_GPU, repeat=True)
         assert await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()

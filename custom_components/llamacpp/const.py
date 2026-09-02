@@ -27,7 +27,6 @@ MIN_SCAN_INTERVAL = 5
 PATH_METRICS = "/metrics"
 PATH_SLOTS = "/slots"
 PATH_PROPS = "/props"
-PATH_HEALTH = "/health"
 
 
 @dataclass(frozen=True)

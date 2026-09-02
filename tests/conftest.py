@@ -101,9 +101,6 @@ SAMPLE_PROPS = {
     "is_sleeping": False,
     "build_info": "b1234-dirty",
 }
-
-SAMPLE_HEALTH = {"status": "ok"}
-
 SAMPLE_GPU = {
     "gpu_utilization": 93.0,
     "memory_utilization": 71.0,
@@ -134,7 +131,6 @@ def mock_endpoints():
         mocked.get(f"{LLAMA_URL}/metrics", body=SAMPLE_METRICS, repeat=True)
         mocked.get(f"{LLAMA_URL}/slots", payload=SAMPLE_SLOTS, repeat=True)
         mocked.get(f"{LLAMA_URL}/props", payload=SAMPLE_PROPS, repeat=True)
-        mocked.get(f"{LLAMA_URL}/health", payload=SAMPLE_HEALTH, repeat=True)
         mocked.get(GPU_URL, payload=SAMPLE_GPU, repeat=True)
         yield mocked
 

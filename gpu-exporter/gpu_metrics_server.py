@@ -8,9 +8,7 @@ nvidia-container-toolkit provides it at runtime).
 
 import json
 import logging
-import signal
 import subprocess
-import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -100,13 +98,6 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     server = ThreadingHTTPServer((HOST, PORT), Handler)
-
-    def _stop(signum: int, _frame: object) -> None:
-        log.info("received %s, stopping", signal.Signals(signum).name)
-        threading.Thread(target=server.shutdown, daemon=True).start()
-
-    signal.signal(signal.SIGTERM, _stop)
-    signal.signal(signal.SIGINT, _stop)
 
     log.info("serving GPU metrics on http://%s:%d/", HOST, PORT)
     try:

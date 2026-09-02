@@ -22,7 +22,6 @@ from .const import (
     CONF_LLAMA_URL,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
-    PATH_HEALTH,
     PATH_METRICS,
     PATH_PROPS,
     PATH_SLOTS,
@@ -138,7 +137,7 @@ class _BaseCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
 
 class LlamaCPPCoordinator(_BaseCoordinator):
-    """Poll a llama.cpp server: /metrics, /slots, /props, /health."""
+    """Poll a llama.cpp server: /metrics, /slots, /props."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.base_url = entry.data[CONF_LLAMA_URL].rstrip("/")
@@ -155,10 +154,9 @@ class LlamaCPPCoordinator(_BaseCoordinator):
         metrics_text = await self._async_get_text(base + PATH_METRICS)
         metrics = parse_prometheus(metrics_text)
 
-        slots_raw, props, health = await asyncio.gather(
+        slots_raw, props = await asyncio.gather(
             self._async_get_json_optional(base + PATH_SLOTS),
             self._async_get_json_optional(base + PATH_PROPS),
-            self._async_get_json_optional(base + PATH_HEALTH),
         )
         slots = slots_raw if isinstance(slots_raw, list) else []
 
@@ -166,7 +164,6 @@ class LlamaCPPCoordinator(_BaseCoordinator):
             "metrics": metrics,
             "slots": slots,
             "props": props or {},
-            "health": (health or {}).get("status"),
         }
 
 

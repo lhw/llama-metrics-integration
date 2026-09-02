@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import PurePosixPath
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +15,7 @@ def _mask_path(value: str | None) -> str | None:
     """Reduce a filesystem path to its basename for diagnostics."""
     if not value:
         return value
-    return value.rsplit("/", 1)[-1]
+    return PurePosixPath(value).name
 
 
 def _coordinator_state(coord: DataUpdateCoordinator | None) -> dict[str, Any] | None:
