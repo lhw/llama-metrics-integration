@@ -167,3 +167,27 @@ def get_state(hass, entity_domain: str, unique_id: str):
     """Return the State for an entity by its (component, unique_id)."""
     entity_id = er.async_get(hass).async_get_entity_id(entity_domain, DOMAIN, unique_id)
     return hass.states.get(entity_id) if entity_id else None
+
+
+def entity_exists(hass, entity_domain: str, unique_id: str) -> bool:
+    """True if an entity with this (domain, unique_id) is registered."""
+    entity_id = er.async_get(hass).async_get_entity_id(entity_domain, DOMAIN, unique_id)
+    return entity_id is not None
+
+
+def is_entity_enabled(hass, entity_domain: str, unique_id: str) -> bool:
+    """True if the entity exists in the registry and is not disabled."""
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id(entity_domain, DOMAIN, unique_id)
+    if entity_id is None:
+        return False
+    return registry.async_get(entity_id).disabled_by is None
+
+
+def entity_category(hass, entity_domain: str, unique_id: str):
+    """Registry category: ``None`` when surfaced, else e.g. "diagnostic"."""
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id(entity_domain, DOMAIN, unique_id)
+    if entity_id is None:
+        return None
+    return registry.async_get(entity_id).entity_category

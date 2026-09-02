@@ -65,7 +65,7 @@ A bare `host:port` is accepted and defaults to `http://`. The GPU URL and pollin
 
 **GPU device** (from the exporter): utilization, memory (used/total), temperature, power draw/limit, SM clock, fan speed, and the GPU/PCI identifiers.
 
-All metric entities are categorized as **diagnostics** to keep the default dashboard uncluttered; promote any you like to the dashboard.
+The headline metrics — throughput, token/time totals, and GPU utilization, memory, temperature, and power — are surfaced by default. The high-churn diagnostics (speculative decode, prompt cache, KV tail, request/slot gauges, SM clock, fan, …) are **diagnostic and disabled by default** to avoid state spam; enable any you want from the entity registry.
 
 ## Development
 

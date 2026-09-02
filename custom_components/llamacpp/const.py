@@ -38,6 +38,9 @@ class MetricDef:
     unit: str | None = None
     state_class: SensorStateClass | None = None
     device_class: SensorDeviceClass | None = None
+    # Front-and-center: surfaced (not diagnostic). Statistical metrics that are
+    # not front-and-center are disabled by default to avoid state spam.
+    front: bool = False
 
 
 # Known llama.cpp Prometheus metrics, keyed by full metric name (with the
@@ -49,32 +52,38 @@ LLAMACPP_METRICS: dict[str, MetricDef] = {
         name="Prompt throughput",
         unit="tokens/s",
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     "llamacpp:predicted_tokens_seconds": MetricDef(
         name="Generation throughput",
         unit="tokens/s",
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     # Token / time counters
     "llamacpp:prompt_tokens_total": MetricDef(
         name="Prompt tokens",
         unit="tokens",
         state_class=SensorStateClass.TOTAL_INCREASING,
+        front=True,
     ),
     "llamacpp:tokens_predicted_total": MetricDef(
         name="Generated tokens",
         unit="tokens",
         state_class=SensorStateClass.TOTAL_INCREASING,
+        front=True,
     ),
     "llamacpp:prompt_seconds_total": MetricDef(
         name="Prompt time",
         unit=UnitOfTime.SECONDS,
         state_class=SensorStateClass.TOTAL_INCREASING,
+        front=True,
     ),
     "llamacpp:tokens_predicted_seconds_total": MetricDef(
         name="Generation time",
         unit=UnitOfTime.SECONDS,
         state_class=SensorStateClass.TOTAL_INCREASING,
+        front=True,
     ),
     # Decode counters
     "llamacpp:n_decode_total": MetricDef(
@@ -178,6 +187,7 @@ GPU_METRICS: dict[str, MetricDef] = {
         name="GPU utilization",
         unit=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     "memory_utilization": MetricDef(
         name="Memory utilization",
@@ -189,6 +199,7 @@ GPU_METRICS: dict[str, MetricDef] = {
         unit=UnitOfInformation.MEBIBYTES,
         device_class=SensorDeviceClass.DATA_SIZE,
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     "memory_total_mb": MetricDef(
         name="Memory total",
@@ -200,12 +211,14 @@ GPU_METRICS: dict[str, MetricDef] = {
         unit=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     "power_draw_w": MetricDef(
         name="Power",
         unit=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
+        front=True,
     ),
     "power_limit_w": MetricDef(
         name="Power limit",

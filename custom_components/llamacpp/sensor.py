@@ -37,6 +37,21 @@ SLOT_SENSOR_DEFS: list[tuple[str, str, str | None]] = [
 ]
 
 
+def _presentation(definition: MetricDef | None) -> tuple[EntityCategory | None, bool]:
+    """Return ``(entity_category, enabled_by_default)`` for a metric definition.
+
+    Front-and-center metrics are surfaced; statistical metrics that are not are
+    hidden (diagnostic) and disabled by default so they don't spam state. Static
+    (non-statistical) metrics stay available.
+    """
+    if definition is None:
+        return EntityCategory.DIAGNOSTIC, True
+    front = definition.front
+    category = None if front else EntityCategory.DIAGNOSTIC
+    enabled = front or definition.state_class is None
+    return category, enabled
+
+
 def _main_device_info(
     host: str, props: dict[str, Any], base_url: str
 ) -> dict[str, Any]:
@@ -71,7 +86,6 @@ class LlamaMetricSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
     """A single prometheus metric series from the llama.cpp server."""
 
     _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -93,6 +107,9 @@ class LlamaMetricSensor(CoordinatorEntity[LlamaCPPCoordinator], SensorEntity):
         self._attr_native_unit_of_measurement = definition.unit if definition else None
         self._attr_state_class = definition.state_class if definition else None
         self._attr_device_class = definition.device_class if definition else None
+        category, enabled = _presentation(definition)
+        self._attr_entity_category = category
+        self.entity_registry_enabled_default = enabled
         self._key = key
         self._attr_unique_id = f"{key}"
         self._attr_device_info = device_info
@@ -161,7 +178,6 @@ class GpuMetricSensor(CoordinatorEntity[GpuCoordinator], SensorEntity):
     """A single field from the GPU exporter."""
 
     _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -175,6 +191,9 @@ class GpuMetricSensor(CoordinatorEntity[GpuCoordinator], SensorEntity):
         self._attr_native_unit_of_measurement = definition.unit
         self._attr_state_class = definition.state_class
         self._attr_device_class = definition.device_class
+        category, enabled = _presentation(definition)
+        self._attr_entity_category = category
+        self.entity_registry_enabled_default = enabled
         self._key = key
         self._attr_unique_id = f"gpu:{key}"
         self._attr_device_info = device_info
