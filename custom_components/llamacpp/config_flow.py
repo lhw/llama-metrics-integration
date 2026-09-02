@@ -53,7 +53,7 @@ def _schema(defaults: dict[str, Any]) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_LLAMA_URL, default=defaults.get(CONF_LLAMA_URL, "")): str,
-            vol.Required(CONF_GPU_URL, default=defaults.get(CONF_GPU_URL, "")): str,
+            vol.Optional(CONF_GPU_URL, default=defaults.get(CONF_GPU_URL, "")): str,
             vol.Required(
                 CONF_SCAN_INTERVAL,
                 default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),

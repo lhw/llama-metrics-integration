@@ -41,6 +41,17 @@ async def test_user_flow_bare_url_and_no_gpu(hass, mock_endpoints) -> None:
     assert result["data"][CONF_GPU_URL] is None
 
 
+async def test_user_flow_omits_gpu_url(hass, mock_endpoints) -> None:
+    """GPU URL is optional: a submission without it still creates the entry."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+        data={CONF_LLAMA_URL: LLAMA_URL, CONF_SCAN_INTERVAL: 15},
+    )
+    assert result["type"] == "create_entry"
+    assert result["data"][CONF_GPU_URL] is None
+
+
 async def test_user_flow_cannot_connect(hass) -> None:
     with aioresponses() as mocked:
         mocked.get(f"{LLAMA_URL}/metrics", exception=aiohttp.ClientConnectionError())

@@ -16,3 +16,6 @@ htmlcov/
 .idea/
 .vscode/
 .DS_Store
+
+# Local planning notes (keep out of version control)
+PLAN.md

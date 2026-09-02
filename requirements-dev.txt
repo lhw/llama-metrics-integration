@@ -1,0 +1,6 @@
+# Dev / test dependencies.
+# Install with:  pip install -r requirements-dev.txt
+homeassistant==2026.2.3
+pytest-homeassistant-custom-component==0.13.316
+aioresponses==0.7.9
+ruff==0.16.5
