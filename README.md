@@ -71,7 +71,7 @@ All metric entities are categorized as **diagnostics** to keep the default dashb
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install homeassistant pytest-homeassistant-custom-component aioresponses ruff
+pip install -r requirements-dev.txt
 pytest            # runs the test suite
 ruff check custom_components tests
 ```
