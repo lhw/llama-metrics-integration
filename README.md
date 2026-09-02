@@ -69,11 +69,12 @@ The headline metrics — throughput, token/time totals, and GPU utilization, mem
 
 ## Development
 
+Dependency management uses [uv](https://docs.astral.sh/uv/) (`uv.lock` is committed):
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt
-pytest            # runs the test suite
-ruff check custom_components tests
+uv sync                              # create .venv + install pinned dev deps
+uv run pytest                        # runs the test suite
+uv run ruff check custom_components tests
 ```
 
 The test suite runs entirely against mocked endpoints (`aioresponses`); no network access is required.
